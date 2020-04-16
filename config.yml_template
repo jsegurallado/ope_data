@@ -1,0 +1,12 @@
+---
+db_bi:
+  database:
+  password:
+  host:
+  username:
+
+db_core:
+  database:
+  password:
+  host:
+  username:
