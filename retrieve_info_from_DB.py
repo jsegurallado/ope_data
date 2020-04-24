@@ -34,7 +34,7 @@ def retrieve_sales_info(conn):
         left join GEN_PROVINCE_DIM prov on left(esup.sp_zipcode, 2) = prov.province_nk
         left join OPE_SALES ope on con.contract_id = ope.contract_id
         WHERE registration_type IN('Cambio', 'Nueva Alta')
-        and ope.contract_id is null
+        /*and ope.contract_id is null*/
         and esup.sp_zipcode is not null
 
         """, conn)
@@ -51,12 +51,41 @@ def retrieve_sales_info(conn):
         left join GEN_PROVINCE_DIM prov on left(esup.sp_zipcode, 2) = prov.province_nk
         LEFT JOIN OPE_SALES ope on ope.contract_id = con.contract_id
         WHERE new_client_flag = 1
-        and ope.contract_id is null
+        /*and ope.contract_id is null*/
         and esup.sp_zipcode is not null
 
         """, conn)
 
-    sales = electr_sales.append(gas_sales)
+    self_consumption_sales = pd.read_sql("""
+        select potential_id as contract_id,
+        COALESCE(date(A.co_start_date), B.co_start_date) as contract_start_date, 
+        A.cups, 
+        B.tariff_ekon_id as tariff, 
+        A.type as product, 
+        B.sales_company_id, 
+        C.sales_company_name,
+        C.channel_group, 
+        'SELF-CONSUMPTION' AS business_type, 
+        sp_zipcode as zipcode, 
+        province_ekon_name as province 
+        from STAGING.SLS_SELFCONSUMPTION_DAT A
+        LEFT JOIN
+        (WITH CONTRACTS AS( 
+        SELECT contract_id, cups, date(co_start_date) as co_start_date, registration_type, tariff_ekon_id, sales_company_id,
+        RANK() OVER(
+        PARTITION BY(cups)
+        order by co_start_date desc
+        ) as ranking
+        FROM CON_ECONTRACT_DIM 
+        WHERE registration_type IN('Cambio','Nueva Alta'))
+        SELECT * FROM CONTRACTS
+        WHERE ranking = 1) B ON A.cups = B.cups 
+        left JOIN SLS_COMPANY_DIM C on B.sales_company_id = C.sales_company_id 
+        left join CON_ESUPPLY_POINT_DIM D ON B.contract_id = D.contract_id
+        left JOIN GEN_PROVINCE_DIM E ON left(sp_zipcode, 2) = province_nk
+        /*LEFT JOIN OPE_SALES ope on ope.contract_id = A.contract_id*/""", conn)
+
+    sales = electr_sales.append(gas_sales).append(self_consumption_sales)
 
     return sales
 
