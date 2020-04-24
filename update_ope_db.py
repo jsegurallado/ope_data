@@ -93,25 +93,30 @@ GA_data['type'] = np.where(GA_data['CMB_CMN'] > 0, 'CMB_CMN',
 new_OPE_GA = GA_data.groupby(['day', 'type']).agg({'cookie':'count'}).reset_index()
 new_OPE_GA = new_OPE_GA.rename(columns={'cookie': 'num_users'}).sort_values(['day', 'type'])
 
-insert_new_data_to_DB(new_OPE_GA, 'OPE_GA', conn_bi)
+if len(new_OPE_GA) > 0:
+    insert_new_data_to_DB(new_OPE_GA, 'OPE_GA', conn_bi)
 
 
 # Update OPE_CALLS table
 calls = retrieveDB.retrieve_calls_info(conn_bi)
-insert_new_data_to_DB(calls, 'OPE_CALLS', conn_bi)
+if len(calls) > 0:
+    insert_new_data_to_DB(calls, 'OPE_CALLS', conn_bi)
 
 
 # Update OPE_SALES table
 sales = retrieveDB.retrieve_sales_info(conn_bi)
-insert_new_data_to_DB(sales, 'OPE_SALES', conn_bi)
+if len(sales) > 0:
+    insert_new_data_to_DB(sales, 'OPE_SALES', conn_bi)
 
 
 # Update OPE_DROPS table
 drops = retrieveDB.retrieve_drops_info(conn_bi)
-insert_new_data_to_DB(drops, 'OPE_DROPS', conn_bi)
+if len(drops) > 0:
+    insert_new_data_to_DB(drops, 'OPE_DROPS', conn_bi)
 
 
 # Update OPE_LEADS table
 update_date = find_updating_date('OPE_LEADS', conn_bi)
 leads = retrieveDB.retrieve_leads_info(from_date=update_date, conn=conn_core)
-insert_new_data_to_DB(leads, 'OPE_LEADS', conn_bi)
+if len(leads) > 0:
+    insert_new_data_to_DB(leads, 'OPE_LEADS', conn_bi)
