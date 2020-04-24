@@ -5,7 +5,7 @@ Module with functions for retrieving info from Google Analytics.
 
 import socket, datetime
 import pandas as pd
-from apiclient.discovery import build
+from googleapiclient.discovery import build
 from oauth2client.service_account import ServiceAccountCredentials
 
 
