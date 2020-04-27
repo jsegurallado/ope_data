@@ -47,7 +47,7 @@ def insert_new_data_to_DB(df, table, conn):
         """, conn)
 
     # Filter new info not already in DB and insert in database
-    df_notInDB = df.append(already_in).drop_duplicates(keep=False)
+    df_notInDB = df[~df[df.columns].isin(already_in[already_in.columns])].dropna()
     if len(df_notInDB) > 0:
         df_notInDB.to_sql(name=table, con=conn, if_exists="append", index=False)
 
